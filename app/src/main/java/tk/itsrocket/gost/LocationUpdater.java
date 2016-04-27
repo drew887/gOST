@@ -14,11 +14,11 @@ public class LocationUpdater implements LocationListener {
     private int networkUpdateFreq;
     private Location lastLocation;
 
-    LocationUpdater(int pGpsUpdateFreq, int pNetworkUpdateFreq){
+    LocationUpdater(int pGpsUpdateFreq, int pNetworkUpdateFreq) {
         setGpsUpdateFreq(pGpsUpdateFreq);
         setNetworkUpdateFreq(pNetworkUpdateFreq);
     }
-    
+
     @Override
     public void onLocationChanged(Location location) {
         Log.i("LocationUpdater", "logUpdate: " + location.toString());

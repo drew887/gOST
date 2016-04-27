@@ -3,6 +3,7 @@ package tk.itsrocket.gost;
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.database.sqlite.SQLiteDatabase;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
@@ -12,11 +13,14 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import tk.itsrocket.gost.Controler.ZoneDBHelper;
+import tk.itsrocket.gost.Model.Zone;
+
 public class MainActivity extends AppCompatActivity {
 
     private final String TAG = "gOST";
     private LocationManager locMan;
-    private LocationUpdater  locUpt;
+    private LocationUpdater locUpt;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,15 +29,14 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        locMan  = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+        locMan = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
         locUpt = new LocationUpdater(3000, 0);
-        if(ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             locMan.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, locUpt.getNetworkUpdateFreq(), 0, locUpt);
             locMan.requestLocationUpdates(LocationManager.GPS_PROVIDER, locUpt.getGpsUpdateFreq(), 0, locUpt);
-        }else{
+        } else {
             Log.e(TAG, "onCreate: NO PERMISSION");
         }
-
     }
 
     @Override
@@ -52,6 +55,11 @@ public class MainActivity extends AppCompatActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            ZoneDBHelper zdbh = new ZoneDBHelper(getApplicationContext());
+            SQLiteDatabase db = zdbh.getWritableDatabase();
+            Zone zone = new Zone(45.5, 45.5, "blam", "home", 0l);
+            Boolean result = zdbh.insert(db, zone);
+            Log.i(TAG, "VALUE INST " + result.toString() + ", " + zone.getID());
             return true;
         }
 
