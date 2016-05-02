@@ -1,0 +1,18 @@
+* Todo file for gOST
+
+* Sections
+** Front end
+*** Build music section
+**** TODO Create a player and have it update
+*** Make map work
+**** TODO Have a map fragment/activity
+SCHEDULED: <2016-05-07 Sat>
+**** TODO Create zones on map and log into db
+** Back end
+*** Music
+**** TODO Get basic music playing, even just little dits
+***** TODO Create music service that can update the ui
+*** Location
+**** TODO Figure out good algo for when to update location
+*** Database
+**** TODO Create and store custom zones

@@ -1,3 +1,20 @@
+/*
+    gOST a location based bgm player
+    Copyright (C) 2016 Andrew Mcdonald Притула, drew887121@gmail.com
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 package tk.itsrocket.gost;
 
 import android.Manifest;
@@ -13,6 +30,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import tk.itsrocket.gost.Controler.ZoneDBContract;
 import tk.itsrocket.gost.Controler.ZoneDBHelper;
 import tk.itsrocket.gost.Model.Zone;
 
@@ -51,18 +69,22 @@ public class MainActivity extends AppCompatActivity {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            ZoneDBHelper zdbh = new ZoneDBHelper(getApplicationContext());
-            SQLiteDatabase db = zdbh.getWritableDatabase();
-            Zone zone = new Zone(45.5, 45.5, "blam", "home", 0l);
-            Boolean result = zdbh.insert(db, zone);
-            Log.i(TAG, "VALUE INST " + result.toString() + ", " + zone.getID());
-            return true;
+        ZoneDBHelper zdbh= new ZoneDBHelper(getApplicationContext());;
+        SQLiteDatabase db;
+        switch (item.getItemId()) {
+            case R.id.action_settings:
+                db = zdbh.getWritableDatabase();
+                Zone zone = new Zone(45.5, 45.5, "blam", "home", 0l);
+                Boolean result = zdbh.insert(db, zone);
+                Log.i(TAG, "VALUE INST " + result.toString() + ", " + zone.getID());
+                return true;
+            case R.id.action_wipe:
+                db = zdbh.getWritableDatabase();
+                db.execSQL(ZoneDBContract.deleteString);
+                db.execSQL(ZoneDBContract.createString);
+                Log.i(TAG, "DB RECREATED");
+                return true;
         }
-
         return super.onOptionsItemSelected(item);
     }
 }
