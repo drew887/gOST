@@ -27,36 +27,35 @@ import tk.itsrocket.gost.Model.Zone;
 /**
  * Created by Andrew Mcdonald Притула on 4/26/16.
  */
-public class ZoneDBHelper extends SQLiteOpenHelper {
+public class ZoneDBHelper extends SQLiteOpenHelper{
 
     public static final int dbVersion = 1;
     public static final String dbName = "zones.db";
 
-    public ZoneDBHelper(Context context) {
+    public ZoneDBHelper(Context context){
         super(context, dbName, null, dbVersion);
     }
 
     @Override
-    public void onCreate(SQLiteDatabase db) {
+    public void onCreate(SQLiteDatabase db){
         db.execSQL(ZoneDBContract.createString);
     }
 
     @Override
-    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion){
         //do nothing for now
     }
 
     /**
      * Inserts zone into db and sets zones id to the new id returned
-     *
-     * @param db   the db to insert
-     * @param zone the new zone to insert, it will assign the new id to it
+     * @param db the db to insert
+     * @param zone the new Zone to insert, it will assign the new id to it
      * @return true if the insert was successful
      */
-    public Boolean insert(SQLiteDatabase db, Zone zone) {
+    public Boolean insert(SQLiteDatabase db, Zone zone){
         Boolean result = false;
         Long insert = db.insert(ZoneDBEntry.tableName, "null", zone.generateContentValues());
-        if (insert > 0) {
+        if(insert > 0){
             result = true;
             zone.setID(insert);
         }
@@ -64,18 +63,49 @@ public class ZoneDBHelper extends SQLiteOpenHelper {
     }
 
     /**
-     * updates zone in the database
-     *
-     * @param db
-     * @param zone
+     * performs insert with zone but with the inner writeable database
+     * @param zone the new Zone to insert, it will assign the new id to it
+     * @return true if the insert was successful
+     */
+    public Boolean insert(Zone zone){
+        return insert(getWritableDatabase(), zone);
+    }
+
+    /**
+     * updates zone in the database db
+     * @param db the db to update
+     * @param zone the Zone to update
      * @return returns true if the result modified exactly 1 record (should only be 1)
      */
-    public Boolean update(SQLiteDatabase db, Zone zone) {
-        Boolean result = false;
+    public Boolean update(SQLiteDatabase db, Zone zone){
         String whereString = ZoneDBEntry.ID + " = ?";
         String[] whereValues = {zone.getID().toString()};
         int modified = db.update(ZoneDBEntry.tableName, zone.generateContentValues(), whereString, whereValues);
-        result = modified == 1;
-        return result;
+        return (modified == 1);
+    }
+
+    /**
+     * calls update on the inner writeable database
+     * @param zone the Zone to update
+     * @return returns true if the result modified exactly 1 record (should only be 1)
+     */
+    public Boolean update(Zone zone){
+        return update(getWritableDatabase(), zone);
+    }
+
+    /**
+     * recreates the zone table in db
+     * @param db the SQLiteDatabase to recrate the tables in
+     */
+    public void recreate(SQLiteDatabase db){
+        db.execSQL(ZoneDBContract.deleteString);
+        db.execSQL(ZoneDBContract.createString);
+    }
+
+    /**
+     * recreates the zone database on the inner writeable database
+     */
+    public void recreate(){
+        recreate(getWritableDatabase());
     }
 }

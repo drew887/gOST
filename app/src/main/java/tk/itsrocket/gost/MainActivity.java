@@ -19,8 +19,9 @@ package tk.itsrocket.gost;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.database.sqlite.SQLiteDatabase;
+import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
@@ -29,62 +30,74 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 
-import tk.itsrocket.gost.Controler.ZoneDBContract;
+import com.google.android.gms.common.GoogleApiAvailability;
+
 import tk.itsrocket.gost.Controler.ZoneDBHelper;
 import tk.itsrocket.gost.Model.Zone;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity{
 
-    private final String TAG = "gOST";
+    private final String TAG = "mainAct";
     private LocationManager locMan;
     private LocationUpdater locUpt;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_layout);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = (Toolbar)findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        locMan = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+        locMan = (LocationManager)this.getSystemService(Context.LOCATION_SERVICE);
         locUpt = new LocationUpdater(3000, 0);
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            locMan.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, locUpt.getNetworkUpdateFreq(), 0, locUpt);
-            locMan.requestLocationUpdates(LocationManager.GPS_PROVIDER, locUpt.getGpsUpdateFreq(), 0, locUpt);
-        } else {
-            Log.e(TAG, "onCreate: NO PERMISSION");
+        if(ContextCompat.checkSelfPermission(this,  Manifest.permission
+                .ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED){
+            locMan.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,
+                    locUpt.getNetworkUpdateFreq(), 0, locUpt);
+            locMan.requestLocationUpdates(LocationManager.GPS_PROVIDER,
+                    locUpt.getGpsUpdateFreq(), 0, locUpt);
+            locUpt.setLastLocation(locMan.getLastKnownLocation
+                    (LocationManager.GPS_PROVIDER));
+        }else{
+            Log.e(TAG, "onCreate: NO GEO PERMISSION");
         }
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
+    public boolean onCreateOptionsMenu(Menu menu){
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        ZoneDBHelper zdbh= new ZoneDBHelper(getApplicationContext());;
-        SQLiteDatabase db;
-        switch (item.getItemId()) {
+    public boolean onOptionsItemSelected(MenuItem item){
+        ZoneDBHelper zdbh = new ZoneDBHelper(getApplicationContext());
+        Boolean selected = false;
+        switch(item.getItemId()){
             case R.id.action_settings:
-                db = zdbh.getWritableDatabase();
-                Zone zone = new Zone(45.5, 45.5, "blam", "home", 0l);
-                Boolean result = zdbh.insert(db, zone);
-                Log.i(TAG, "VALUE INST " + result.toString() + ", " + zone.getID());
-                return true;
+                Location loc = locUpt.getLastLocation();
+                Zone zone = new Zone(loc.getLatitude(), loc.getLongitude(),
+                        (double)loc.getAccuracy(), "blam", "home", 0l);
+                Boolean result = zdbh.insert(zone);
+                Log.i(TAG, "VALUE INST " + zone.getID() + ", " + result.toString());
+                selected = true;
+                break;
             case R.id.action_wipe:
-                db = zdbh.getWritableDatabase();
-                db.execSQL(ZoneDBContract.deleteString);
-                db.execSQL(ZoneDBContract.createString);
+                zdbh.recreate();
                 Log.i(TAG, "DB RECREATED");
-                return true;
+                selected = true;
+                break;
         }
-        return super.onOptionsItemSelected(item);
+        return (selected || super.onOptionsItemSelected(item));
+    }
+
+    public void onCreateBut(View view){
+        Intent intent = new Intent(this, aboutAct.class);
+        intent.putExtra("googleCopyright", GoogleApiAvailability.getInstance()
+                .getOpenSourceSoftwareLicenseInfo(getApplicationContext()));
+        startActivity(intent);
+        Log.i(TAG, "launchAbout");
     }
 }
